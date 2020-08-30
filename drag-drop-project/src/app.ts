@@ -1,3 +1,55 @@
+// Validation
+interface Validatable {
+  value: string | number;
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+}
+
+function validate(validatableInput: Validatable) {
+  // Track status by first setting to true
+  let isValid = true;
+  // Let's check if the validatableInput has required = true
+  if (validatableInput.required) {
+    isValid = isValid && validatableInput.value.toString().trim().length !== 0;
+  }
+  // If value is a string then check minLength
+  // Adding != null check in case minLength = 0 (falsey, so will skip)
+  if (
+    validatableInput.minLength != null &&
+    typeof validatableInput.value === "string"
+  ) {
+    isValid =
+      isValid && validatableInput.value.length >= validatableInput.minLength;
+  }
+  // If value is a string then check maxLength
+  // Adding != null check in case maxLength = 0 (falsey, so will skip)
+  if (
+    validatableInput.maxLength != null &&
+    typeof validatableInput.value === "string"
+  ) {
+    isValid =
+      isValid && validatableInput.value.length <= validatableInput.maxLength;
+  }
+  // If value is a number then check min and max
+  if (
+    validatableInput.min != null &&
+    typeof validatableInput.value === "number"
+  ) {
+    isValid = isValid && validatableInput.value >= validatableInput.min;
+  }
+  // If value is a number then check min and max
+  if (
+    validatableInput.max != null &&
+    typeof validatableInput.value === "number"
+  ) {
+    isValid = isValid && validatableInput.value <= validatableInput.max;
+  }
+  return isValid;
+}
+
 // Add an auto-bind Decorator to simplify .bind(this)
 function autobind(
   /* target: any, */
@@ -86,20 +138,54 @@ class ProjectInput {
   }
 
   // Gather user input data the returns a tuple [title, description, people]
-  private gatherUserInput(): [string, string, number] {
+  // Use Union for function return type to add void type for alert
+  private gatherUserInput(): [string, string, number] | void {
+    // Any value prop is type string so need to convert to number
     const enteredTitle = this.titleInputElement.value;
     const enteredDescription = this.descriptionInputElement.value;
     const enteredPeople = this.peopleInputElement.value;
 
+    // Let's create Validatable interface objects to pass to validate
+    const titleValidatable: Validatable = {
+      value: enteredTitle,
+      required: true,
+    };
+
+    const descriptionValidatable: Validatable = {
+      value: enteredDescription,
+      required: true,
+      minLength: 5,
+    };
+
+    const peopleValidatable: Validatable = {
+      // Need to convert to type number
+      value: +enteredPeople,
+      required: true,
+      min: 1,
+      max: 5,
+    };
+
     // Now we can validate the inputs
     // Very basic check. We'll add a separate validate function later.
     if (
-      enteredTitle.trim().length === 0 ||
-      enteredDescription.trim().length === 0 ||
-      enteredPeople.trim().length === 0
+      !validate(titleValidatable) ||
+      !validate(descriptionValidatable) ||
+      !validate(peopleValidatable)
     ) {
+      alert("Invalid input, please try again!");
+      return;
+    } else {
+      // Any value prop is type string so need to convert to number
+      return [enteredTitle, enteredDescription, +enteredPeople];
     }
   }
+
+  /* private clearInputs() { */
+  /*   // There's a built-in form.reset() method as well. */
+  /*   this.titleInputElement.value = ""; */
+  /*   this.descriptionInputElement.value = ""; */
+  /*   this.peopleInputElement.value = ""; */
+  /* } */
 
   // Add a submit handler function to extract and validate
   // Use our autobind decorator to attach .bind(this)
@@ -109,7 +195,15 @@ class ProjectInput {
     // First prevent submission from making an HTTP request
     event.preventDefault();
     // Gather user input and store
-    console.log(this.titleInputElement.value);
+    const userInput = this.gatherUserInput();
+    // Check the type of userInput to see if it's an Array
+    // No 'tuple' type in vanilla JS but it's just an Array
+    if (Array.isArray(userInput)) {
+      const [title, desc, people] = userInput;
+      console.log(title, desc, people);
+      // Clear form inputs using .reset()
+      this.element.reset();
+    }
   }
 
   // Add a method to addEventListener to our form input and submit
