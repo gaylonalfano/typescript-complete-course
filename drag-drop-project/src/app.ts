@@ -1,3 +1,31 @@
+// Add an auto-bind Decorator to simplify .bind(this)
+function autobind(
+  /* target: any, */
+  /* methodName: string, */
+  _: any,
+  _2: string,
+  descriptor: PropertyDescriptor
+) {
+  // methodName to which our autobind() is bound
+  // descriptor is the PropertyDescriptor of methodName. Methods in the end are just
+  // properties which hold functions.
+  // First: let's get access to original method we're decorating
+  const originalMethod = descriptor.value;
+  // Second: Create adjusted descriptor
+  const adjustedDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      // Executed when we try to access the function
+      // Set up the boundFunction by adding .bind(this) to originalMethod
+      const boundFn = originalMethod.bind(this);
+      // Now let's return this new boundFn
+      return boundFn;
+    },
+  };
+  // Third: Return the adjustedDescriptor in our decorator
+  return adjustedDescriptor;
+}
+
 class ProjectInput {
   // Add class property/variables so they don't throw property not exist error
   // We can use HTMLTemplateElement because we added "dom" in tsconfig libs
@@ -6,6 +34,10 @@ class ProjectInput {
   hostElement: HTMLDivElement;
   // Add property for the importedNode element within form
   element: HTMLFormElement;
+  // Add user input fields within the form
+  titleInputElement: HTMLInputElement;
+  descriptionInputElement: HTMLTextAreaElement;
+  peopleInputElement: HTMLInputElement;
 
   // Add a constructor to get access to template and div for render
   // This is the the def __init__(self) equivalent in Python
@@ -32,8 +64,58 @@ class ProjectInput {
       true
     );
     this.element = importedNode.firstElementChild as HTMLFormElement;
+    // Set the form element id to be 'user-input' for CSS
+    this.element.id = "user-input";
+
+    // Access user input fields within the form
+    this.titleInputElement = this.element.querySelector(
+      "#title"
+    ) as HTMLInputElement;
+    this.descriptionInputElement = this.element.querySelector(
+      "#description"
+    ) as HTMLTextAreaElement;
+    this.peopleInputElement = this.element.querySelector(
+      "#people"
+    ) as HTMLInputElement;
+
+    // Add a submit event listener and handler to our form
+    this.configure();
+
     // Use our private attach() method to render our form
     this.attach();
+  }
+
+  // Gather user input data the returns a tuple [title, description, people]
+  private gatherUserInput(): [string, string, number] {
+    const enteredTitle = this.titleInputElement.value;
+    const enteredDescription = this.descriptionInputElement.value;
+    const enteredPeople = this.peopleInputElement.value;
+
+    // Now we can validate the inputs
+    // Very basic check. We'll add a separate validate function later.
+    if (
+      enteredTitle.trim().length === 0 ||
+      enteredDescription.trim().length === 0 ||
+      enteredPeople.trim().length === 0
+    ) {
+    }
+  }
+
+  // Add a submit handler function to extract and validate
+  // Use our autobind decorator to attach .bind(this)
+  @autobind
+  private submitHandler(event: Event) {
+    // Package up all the user inputs into an object?
+    // First prevent submission from making an HTTP request
+    event.preventDefault();
+    // Gather user input and store
+    console.log(this.titleInputElement.value);
+  }
+
+  // Add a method to addEventListener to our form input and submit
+  private configure() {
+    // Attach a listener to our form element
+    this.element.addEventListener("submit", this.submitHandler);
   }
 
   // Now use importedNode to render content. Creating a private method
@@ -45,4 +127,3 @@ class ProjectInput {
 
 // Create a new instance of this class and see it render on the page
 const prjInput = new ProjectInput();
-
