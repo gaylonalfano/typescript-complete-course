@@ -78,6 +78,20 @@ function autobind(
   return adjustedDescriptor;
 }
 
+class ProjectList {
+  // Reaching out to our template id="project-list"
+  templateElement: HTMLTemplateElement;
+  hostElement: HTMLDivElement;
+  // Our concrete (section) element we're rendering (just like form in ProjectInput)
+  element: HTMLElement;
+
+  constructor() {
+    this.templateElement = document.getElementById(
+      "project-list"
+    )! as HTMLTemplateElement;
+  }
+}
+
 class ProjectInput {
   // Add class property/variables so they don't throw property not exist error
   // We can use HTMLTemplateElement because we added "dom" in tsconfig libs
