@@ -85,10 +85,32 @@ class ProjectList {
   // Our concrete (section) element we're rendering (just like form in ProjectInput)
   element: HTMLElement;
 
-  constructor() {
+  // Add a private 'type' to auto add this property to our instance
+  constructor(private type = "active" | "finished") {
     this.templateElement = document.getElementById(
       "project-list"
     )! as HTMLTemplateElement;
+    this.hostElement = document.getElementById("app")! as HTMLDivElement;
+
+    // Time to make a copy of the template node. We'll insert it in the doc later
+    const importedNode = document.importNode(
+      this.templateElement.content,
+      true
+    );
+
+    // Let's target/select the section as it's the firstELementChild to template
+    this.element = importedNode.firstELementChild as HTMLElement;
+    // Set a dynamic id= that's either 'active' or 'finished'
+    // For this we added 'type' parameter to constructor()
+    this.element.id = `${this.type}-projects`;
+
+    // Attach/render all of this using private attach() method, which uses insertAdjacentElement
+    this.attach();
+  }
+
+  // TODO Insert our importedNode content (this.element) into the document via app div
+  private attach() {
+    this.hostElement.insertAdjacentElement("beforeend", this.element);
   }
 }
 
