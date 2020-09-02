@@ -86,7 +86,7 @@ class ProjectList {
   element: HTMLElement;
 
   // Add a private 'type' to auto add this property to our instance
-  constructor(private type = "active" | "finished") {
+  constructor(private type: "active" | "finished") {
     this.templateElement = document.getElementById(
       "project-list"
     )! as HTMLTemplateElement;
@@ -98,18 +98,35 @@ class ProjectList {
       true
     );
 
-    // Let's target/select the section as it's the firstELementChild to template
-    this.element = importedNode.firstELementChild as HTMLElement;
+    // Let's target/select the section as it's the firstElementChild to template
+    this.element = importedNode.firstElementChild as HTMLElement;
     // Set a dynamic id= that's either 'active' or 'finished'
     // For this we added 'type' parameter to constructor()
     this.element.id = `${this.type}-projects`;
 
     // Attach/render all of this using private attach() method, which uses insertAdjacentElement
     this.attach();
+    this.renderContent();
   }
 
-  // TODO Insert our importedNode content (this.element) into the document via app div
+  // Render content in the h2 and ul elements
+  private renderContent() {
+    // Add an id to the <ul> element so we can select it later
+    const listId = `${this.type}-projects-list`;
+    // Now let's select the actual <ul> element within our section
+    // and set its id value
+    this.element.querySelector("ul")!.id = listId;
+
+    // Add h2 heading content for this section
+    this.element.querySelector(
+      "h2"
+    )!.textContent = `${this.type.toUpperCase()} PROJECTS`;
+  }
+
+  // Insert our importedNode content (this.element) into the document via app div
   private attach() {
+    // Render/attach to the DOM. We're using 'beforeend' to add just before the
+    // closing tag of the hostElement (i.e., just before </div>)
     this.hostElement.insertAdjacentElement("beforeend", this.element);
   }
 }
@@ -256,4 +273,7 @@ class ProjectInput {
 }
 
 // Create a new instance of this class and see it render on the page
-const prjInput = new ProjectInput();
+const projectInput = new ProjectInput();
+// Render our two lists. Currently two empty sections
+const activeProjectsList = new ProjectList("active");
+const finishedProjectsList = new ProjectList("finished");
