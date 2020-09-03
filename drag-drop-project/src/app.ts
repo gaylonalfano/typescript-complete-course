@@ -1,3 +1,47 @@
+// Project State Management to listen for changes throughout app
+class ProjectState {
+  // Add a private projects variable to store all our projects
+  private projects: any[] = [];
+  // Add a private property and set its type to this class itself
+  // Make it Static so it can be called on constructor directly
+  private static instance: ProjectState;
+
+
+  // Add private constructor to guarantee it's a Singleton class
+  private constructor() {
+
+  }
+
+  // Add a getInstance Static method so we can call directly on constructor
+  // without having to first create an instance (then it'd be an instance method)
+  static getInstance() {
+    // Check that our private instance has a value
+    // Otherwise create a new instance
+    if (this.instance) {
+      return this.instance;
+    }
+    this.instance = new ProjectState();
+    return this.instance;
+  } 
+
+  // Create an instance method to add projects to this list when button is clicked
+  addProject(title: string, description: string, numOfPeople: number) {
+    const newProject = {
+      id: Math.random().toString(),
+      title: title,
+      description: description,
+      people: numOfPeople
+    };
+    // Now let's add this newProject to our projects Array
+    this.projects.push(newProject);
+  }
+}
+
+// Create our global const ProjectState instance
+// const projectState = new ProjectState();
+const projectState = ProjectState.getInstance();
+
+
 // Validation
 interface Validatable {
   value: string | number;
@@ -13,7 +57,9 @@ function validate(validatableInput: Validatable) {
   let isValid = true;
   // Let's check if the validatableInput has required = true
   if (validatableInput.required) {
-    isValid = isValid && validatableInput.value.toString().trim().length !== 0;
+    /* isValid = isValid && validatableInput.value.toString().trim().length !== 0; */
+    // Alternate TS 4.0 syntax:
+    isValid &&= validatableInput.value.toString().trim().length !== 0;
   }
   // If value is a string then check minLength
   // Adding != null check in case minLength = 0 (falsey, so will skip)
@@ -253,7 +299,9 @@ class ProjectInput {
     // No 'tuple' type in vanilla JS but it's just an Array
     if (Array.isArray(userInput)) {
       const [title, desc, people] = userInput;
-      console.log(title, desc, people);
+      /* console.log(title, desc, people); */
+      // Add the new project to our projectState singleton object
+      projectState.addProject(title, desc, people);
       // Clear form inputs using .reset()
       this.element.reset();
     }
