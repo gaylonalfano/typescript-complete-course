@@ -1,5 +1,7 @@
 // Project State Management to listen for changes throughout app
 class ProjectState {
+  // Add a private listeners array to store our listeners (functions) when changes
+  private listeners: any[] = [];
   // Add a private projects variable to store all our projects
   private projects: any[] = [];
   // Add a private property and set its type to this class itself
@@ -24,6 +26,10 @@ class ProjectState {
     return this.instance;
   } 
 
+  addListener(listenerFn: Function) {
+    // Add this function to list of listeners
+    this.listeners.push(listenerFn);
+  }
   // Create an instance method to add projects to this list when button is clicked
   addProject(title: string, description: string, numOfPeople: number) {
     const newProject = {
@@ -34,6 +40,14 @@ class ProjectState {
     };
     // Now let's add this newProject to our projects Array
     this.projects.push(newProject);
+    // Loop through listeners function and pass in projects Array as argument
+    for (const listenerFn of this.listeners) {
+      // Execute each function with projects as argument
+      // Make a copy of projects Array so we're not editing original location
+      /* listenerFn(this.projects.slice()); */
+      // Can use spread operator instead of slice() for same effect
+      listenerFn([...this.projects]);
+    }
   }
 }
 
@@ -130,6 +144,8 @@ class ProjectList {
   hostElement: HTMLDivElement;
   // Our concrete (section) element we're rendering (just like form in ProjectInput)
   element: HTMLElement;
+  // Add a new property that will store the list of projects passed to projectState.addListener();
+  assignedProjects: any[];
 
   // Add a private 'type' to auto add this property to our instance
   constructor(private type: "active" | "finished") {
@@ -137,6 +153,8 @@ class ProjectList {
       "project-list"
     )! as HTMLTemplateElement;
     this.hostElement = document.getElementById("app")! as HTMLDivElement;
+    // Set assignedProjects to empty Array
+    this.assignedProjects = [];
 
     // Time to make a copy of the template node. We'll insert it in the doc later
     const importedNode = document.importNode(
@@ -150,9 +168,32 @@ class ProjectList {
     // For this we added 'type' parameter to constructor()
     this.element.id = `${this.type}-projects`;
 
+    // Set up a new listener function using our new ProjectState addListener() method
+    // Have to pass a function to addListener()
+    projectState.addListener((projects: any[]) => {
+      // Gets a list of projects as argument so now we can work with it
+      // Update/overwrite assignedProjects with updated projects 
+      this.assignedProjects = projects;
+      // Now let's render these latest projects
+      this.renderProjects();
+    })
+
     // Attach/render all of this using private attach() method, which uses insertAdjacentElement
     this.attach();
     this.renderContent();
+  }
+
+  // Render the latest/updated list of projects
+  private renderProjects() {
+    // Reach out to the ul elements since they have unique listId values
+    const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
+    // Now let's loop through all the projects (assignedProjects) and render them
+    for (const prjItem of this.assignedProjects) {
+      // Add our project as a list item
+      const listItem = document.createElement('li');
+      listItem.textContent = prjItem.title;
+      listEl.appendChild(listItem);
+    }
   }
 
   // Render content in the h2 and ul elements
