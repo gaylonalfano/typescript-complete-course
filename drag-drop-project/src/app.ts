@@ -1,18 +1,31 @@
+// Project Type (Class actually so we can instantiate it)
+enum ProjectStatus { Active, Finished }
+
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string, 
+    public people: number,
+    public status: ProjectStatus
+  ) {}
+}
+
 // Project State Management to listen for changes throughout app
+type Listener = (items: Project[]) => void;
+
 class ProjectState {
   // Add a private listeners array to store our listeners (functions) when changes
-  private listeners: any[] = [];
+  private listeners: Listener[] = [];
   // Add a private projects variable to store all our projects
-  private projects: any[] = [];
+  private projects: Project[] = [];
   // Add a private property and set its type to this class itself
   // Make it Static so it can be called on constructor directly
   private static instance: ProjectState;
 
 
   // Add private constructor to guarantee it's a Singleton class
-  private constructor() {
-
-  }
+  private constructor() {}
 
   // Add a getInstance Static method so we can call directly on constructor
   // without having to first create an instance (then it'd be an instance method)
@@ -26,18 +39,19 @@ class ProjectState {
     return this.instance;
   } 
 
-  addListener(listenerFn: Function) {
+  addListener(listenerFn: Listener) {
     // Add this function to list of listeners
     this.listeners.push(listenerFn);
   }
   // Create an instance method to add projects to this list when button is clicked
   addProject(title: string, description: string, numOfPeople: number) {
-    const newProject = {
-      id: Math.random().toString(),
-      title: title,
-      description: description,
-      people: numOfPeople
-    };
+    const newProject = new Project(
+      Math.random().toString(),
+      title,
+      description,
+      numOfPeople,
+      ProjectStatus.Active
+    );
     // Now let's add this newProject to our projects Array
     this.projects.push(newProject);
     // Loop through listeners function and pass in projects Array as argument
@@ -145,7 +159,7 @@ class ProjectList {
   // Our concrete (section) element we're rendering (just like form in ProjectInput)
   element: HTMLElement;
   // Add a new property that will store the list of projects passed to projectState.addListener();
-  assignedProjects: any[];
+  assignedProjects: Project[];
 
   // Add a private 'type' to auto add this property to our instance
   constructor(private type: "active" | "finished") {
@@ -170,10 +184,21 @@ class ProjectList {
 
     // Set up a new listener function using our new ProjectState addListener() method
     // Have to pass a function to addListener()
-    projectState.addListener((projects: any[]) => {
+    projectState.addListener((projects: Project[]) => {
       // Gets a list of projects as argument so now we can work with it
+      // Filter our projects before we store and render our projects using status
+      const relevantProjects = projects.filter((project) => {
+        // Check the type value. If type is 'active' then return ProjectStatus.Active only
+        if (this.type === 'active') {
+          return project.status === ProjectStatus.Active;
+        }
+        // Else, return ProjectStatus.Finished projects
+        return project.status === ProjectStatus.Finished;
+      })
+
       // Update/overwrite assignedProjects with updated projects 
-      this.assignedProjects = projects;
+      this.assignedProjects = relevantProjects;
+
       // Now let's render these latest projects
       this.renderProjects();
     })
@@ -187,6 +212,8 @@ class ProjectList {
   private renderProjects() {
     // Reach out to the ul elements since they have unique listId values
     const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
+    // To prevent re-rendering/duplicating projects that are already rendered, let's clear the contents first
+    listEl.innerHTML = "";
     // Now let's loop through all the projects (assignedProjects) and render them
     for (const prjItem of this.assignedProjects) {
       // Add our project as a list item
