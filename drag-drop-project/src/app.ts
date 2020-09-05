@@ -194,59 +194,19 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 }
 
 
-class ProjectList {
-  // Reaching out to our template id="project-list"
-  templateElement: HTMLTemplateElement;
-  hostElement: HTMLDivElement;
-  // Our concrete (section) element we're rendering (just like form in ProjectInput)
-  element: HTMLElement;
+class ProjectList extends Component<HTMLDivElement, HTMLElement> {
   // Add a new property that will store the list of projects passed to projectState.addListener();
   assignedProjects: Project[];
 
   // Add a private 'type' to auto add this property to our instance
   constructor(private type: "active" | "finished") {
-    this.templateElement = document.getElementById(
-      "project-list"
-    )! as HTMLTemplateElement;
-    this.hostElement = document.getElementById("app")! as HTMLDivElement;
+    super("project-list", "app", false, `${type}-projects`);
     // Set assignedProjects to empty Array
     this.assignedProjects = [];
 
-    // Time to make a copy of the template node. We'll insert it in the doc later
-    const importedNode = document.importNode(
-      this.templateElement.content,
-      true
-    );
 
-    // Let's target/select the section as it's the firstElementChild to template
-    this.element = importedNode.firstElementChild as HTMLElement;
-    // Set a dynamic id= that's either 'active' or 'finished'
-    // For this we added 'type' parameter to constructor()
-    this.element.id = `${this.type}-projects`;
-
-    // Set up a new listener function using our new ProjectState addListener() method
-    // Have to pass a function to addListener()
-    projectState.addListener((projects: Project[]) => {
-      // Gets a list of projects as argument so now we can work with it
-      // Filter our projects before we store and render our projects using status
-      const relevantProjects = projects.filter((project) => {
-        // Check the type value. If type is 'active' then return ProjectStatus.Active only
-        if (this.type === 'active') {
-          return project.status === ProjectStatus.Active;
-        }
-        // Else, return ProjectStatus.Finished projects
-        return project.status === ProjectStatus.Finished;
-      })
-
-      // Update/overwrite assignedProjects with updated projects 
-      this.assignedProjects = relevantProjects;
-
-      // Now let's render these latest projects
-      this.renderProjects();
-    })
-
-    // Attach/render all of this using private attach() method, which uses insertAdjacentElement
-    this.attach();
+    // Call configure() which adds our listener function to 
+    // No longer need to call attach() as it happens in base Component
     this.renderContent();
   }
 
@@ -265,8 +225,31 @@ class ProjectList {
     }
   }
 
+  // Create a configure() method that does all the addListener() bit
+  // Can't make it private since it's abstract/public in Component
+  configure() {
+    // Set up a new listener function using our new ProjectState addListener() method
+    // Have to pass a function to addListener()
+    projectState.addListener((projects: Project[]) => {
+      // Gets a list of projects as argument so now we can work with it
+      // Filter our projects before we store and render our projects using status
+      const relevantProjects = projects.filter((project) => {
+        // Check the type value. If type is 'active' then return ProjectStatus.Active only if (this.type === 'active') { return project.status === ProjectStatus.Active; } Else, return ProjectStatus.Finished projects
+        return project.status === ProjectStatus.Finished;
+      })
+
+      // Update/overwrite assignedProjects with updated projects 
+      this.assignedProjects = relevantProjects;
+
+      // Now let's render these latest projects
+      this.renderProjects();
+    })
+  }
+
   // Render content in the h2 and ul elements
-  private renderContent() {
+  // Gotta remove private since renderContent() is public in Component
+  // No such thing as private abstract methods.
+  renderContent() {
     // Add an id to the <ul> element so we can select it later
     const listId = `${this.type}-projects-list`;
     // Now let's select the actual <ul> element within our section
@@ -277,13 +260,6 @@ class ProjectList {
     this.element.querySelector(
       "h2"
     )!.textContent = `${this.type.toUpperCase()} PROJECTS`;
-  }
-
-  // Insert our importedNode content (this.element) into the document via app div
-  private attach() {
-    // Render/attach to the DOM. We're using 'beforeend' to add just before the
-    // closing tag of the hostElement (i.e., just before </div>)
-    this.hostElement.insertAdjacentElement("beforeend", this.element);
   }
 }
 
