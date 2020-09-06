@@ -1,11 +1,14 @@
 // Project Type (Class actually so we can instantiate it)
-enum ProjectStatus { Active, Finished }
+enum ProjectStatus {
+  Active,
+  Finished,
+}
 
 class Project {
   constructor(
     public id: string,
     public title: string,
-    public description: string, 
+    public description: string,
     public people: number,
     public status: ProjectStatus
   ) {}
@@ -23,7 +26,6 @@ class ProjectState {
   // Make it Static so it can be called on constructor directly
   private static instance: ProjectState;
 
-
   // Add private constructor to guarantee it's a Singleton class
   private constructor() {}
 
@@ -37,7 +39,7 @@ class ProjectState {
     }
     this.instance = new ProjectState();
     return this.instance;
-  } 
+  }
 
   addListener(listenerFn: Listener) {
     // Add this function to list of listeners
@@ -68,7 +70,6 @@ class ProjectState {
 // Create our global const ProjectState instance
 // const projectState = new ProjectState();
 const projectState = ProjectState.getInstance();
-
 
 // Validation
 interface Validatable {
@@ -152,7 +153,6 @@ function autobind(
   return adjustedDescriptor;
 }
 
-
 // Component Base Class. Mark abstract class so can't instantiate it directly
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   // Reaching out to our template id="project-list"
@@ -163,11 +163,21 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 
   // Add constructor() that specifies the IDs of the template to select,
   // the hostElement to render our Component, and for the new rendered element
-  constructor(templateId: string, hostElementId: string, insertAtStart: boolean, newElementId?: string) {
-    this.templateElement = document.getElementById(templateId)! as HTMLTemplateElement;
+  constructor(
+    templateId: string,
+    hostElementId: string,
+    insertAtStart: boolean,
+    newElementId?: string
+  ) {
+    this.templateElement = document.getElementById(
+      templateId
+    )! as HTMLTemplateElement;
     this.hostElement = document.getElementById(hostElementId)! as T;
 
-    const importedNode = document.importNode(this.templateElement.content, true);
+    const importedNode = document.importNode(
+      this.templateElement.content,
+      true
+    );
     // Let's target/select the section as it's the firstElementChild to template
     this.element = importedNode.firstElementChild as U;
     // Set a dynamic id= if newElementId? is passed
@@ -176,7 +186,7 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     }
 
     this.attach(insertAtStart);
-  }
+    }
 
   // Insert our importedNode content (this.element) into the document via hostElement
   // Adding an insertAtStart parameter to specify location
@@ -188,11 +198,12 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     );
   }
   // Ensure that inheriting classes also add these two methods for more
-  // concrete implementations.
+  // concrete implementations. Also ensures that no conflicts occur so 
+  // it's better they're called within inheriting classes since super()
+  // would run this constructor first.
   abstract configure(): void;
   abstract renderContent(): void;
 }
-
 
 class ProjectList extends Component<HTMLDivElement, HTMLElement> {
   // Add a new property that will store the list of projects passed to projectState.addListener();
@@ -204,27 +215,13 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
     // Set assignedProjects to empty Array
     this.assignedProjects = [];
 
-
-    // Call configure() which adds our listener function to 
+    // Call configure() which adds our listener function to
+    this.configure();
     // No longer need to call attach() as it happens in base Component
     this.renderContent();
   }
 
-  // Render the latest/updated list of projects
-  private renderProjects() {
-    // Reach out to the ul elements since they have unique listId values
-    const listEl = document.getElementById(`${this.type}-projects-list`)! as HTMLUListElement;
-    // To prevent re-rendering/duplicating projects that are already rendered, let's clear the contents first
-    listEl.innerHTML = "";
-    // Now let's loop through all the projects (assignedProjects) and render them
-    for (const prjItem of this.assignedProjects) {
-      // Add our project as a list item
-      const listItem = document.createElement('li');
-      listItem.textContent = prjItem.title;
-      listEl.appendChild(listItem);
-    }
-  }
-
+  // It's convention to move public methods up top before private
   // Create a configure() method that does all the addListener() bit
   // Can't make it private since it's abstract/public in Component
   configure() {
@@ -234,16 +231,19 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
       // Gets a list of projects as argument so now we can work with it
       // Filter our projects before we store and render our projects using status
       const relevantProjects = projects.filter((project) => {
-        // Check the type value. If type is 'active' then return ProjectStatus.Active only if (this.type === 'active') { return project.status === ProjectStatus.Active; } Else, return ProjectStatus.Finished projects
+        // Check the type value. If type is 'active' then return ProjectStatus.Active only 
+        if (this.type === 'active') {
+          return project.status === ProjectStatus.Active; 
+        }
         return project.status === ProjectStatus.Finished;
-      })
+      });
 
-      // Update/overwrite assignedProjects with updated projects 
+      // Update/overwrite assignedProjects with updated projects
       this.assignedProjects = relevantProjects;
 
       // Now let's render these latest projects
       this.renderProjects();
-    })
+    });
   }
 
   // Render content in the h2 and ul elements
@@ -261,16 +261,26 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
       "h2"
     )!.textContent = `${this.type.toUpperCase()} PROJECTS`;
   }
+
+  // Render the latest/updated list of projects
+  private renderProjects() {
+    // Reach out to the ul elements since they have unique listId values
+    const listEl = document.getElementById(
+      `${this.type}-projects-list`
+    )! as HTMLUListElement;
+    // To prevent re-rendering/duplicating projects that are already rendered, let's clear the contents first
+    listEl.innerHTML = "";
+    // Now let's loop through all the projects (assignedProjects) and render them
+    for (const prjItem of this.assignedProjects) {
+      // Add our project as a list item
+      const listItem = document.createElement("li");
+      listItem.textContent = prjItem.title;
+      listEl.appendChild(listItem);
+    }
+  }
 }
 
-class ProjectInput {
-  // Add class property/variables so they don't throw property not exist error
-  // We can use HTMLTemplateElement because we added "dom" in tsconfig libs
-  templateElement: HTMLTemplateElement;
-  // Where we want to render our project input form
-  hostElement: HTMLDivElement;
-  // Add property for the importedNode element within form
-  element: HTMLFormElement;
+class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
   // Add user input fields within the form
   titleInputElement: HTMLInputElement;
   descriptionInputElement: HTMLTextAreaElement;
@@ -279,31 +289,7 @@ class ProjectInput {
   // Add a constructor to get access to template and div for render
   // This is the the def __init__(self) equivalent in Python
   constructor() {
-    // Add two properties on the fly
-    // We need to add these as class variables and set their types
-    // Otherwise we get a 'Property does not exist' error
-    // Can also use type casting to tell TS the type we're going to get
-    /* this.templateElement = <HTMLTemplateElement>( */
-    /*   document.getElementById("project-input")! */
-    /* ); */
-    this.templateElement = document.getElementById(
-      "project-input"
-    )! as HTMLTemplateElement;
-    this.hostElement = document.getElementById("app")! as HTMLDivElement;
-
-    // Now that we have access to these elements, let's import the content
-    // inside our template tag and render to the DOM (via our div)
-    // We could do this outside of the constructor but the idea is that a
-    // new instance of this class will immediately render a form that belongs
-    // to this new class instance. We'll use document.importNode() for this.
-    const importedNode = document.importNode(
-      this.templateElement.content,
-      true
-    );
-    this.element = importedNode.firstElementChild as HTMLFormElement;
-    // Set the form element id to be 'user-input' for CSS
-    this.element.id = "user-input";
-
+    super("project-input", "app", true, "user-input");
     // Access user input fields within the form
     this.titleInputElement = this.element.querySelector(
       "#title"
@@ -314,13 +300,18 @@ class ProjectInput {
     this.peopleInputElement = this.element.querySelector(
       "#people"
     ) as HTMLInputElement;
-
     // Add a submit event listener and handler to our form
     this.configure();
-
-    // Use our private attach() method to render our form
-    this.attach();
   }
+
+  // Add a method to addEventListener to our form input and submit
+  configure() {
+    // Attach a listener to our form element
+    this.element.addEventListener("submit", this.submitHandler);
+  }
+
+  // Add a renderContent() method since it's required from Component class
+  renderContent() {}
 
   // Gather user input data the returns a tuple [title, description, people]
   // Use Union for function return type to add void type for alert
@@ -391,18 +382,6 @@ class ProjectInput {
       // Clear form inputs using .reset()
       this.element.reset();
     }
-  }
-
-  // Add a method to addEventListener to our form input and submit
-  private configure() {
-    // Attach a listener to our form element
-    this.element.addEventListener("submit", this.submitHandler);
-  }
-
-  // Now use importedNode to render content. Creating a private method
-  // to help with this.
-  private attach() {
-    this.hostElement.insertAdjacentElement("afterbegin", this.element);
   }
 }
 
