@@ -15,11 +15,23 @@ class Project {
 }
 
 // Project State Management to listen for changes throughout app
-type Listener = (items: Project[]) => void;
+type Listener<T> = (items: T[]) => void;
 
-class ProjectState {
-  // Add a private listeners array to store our listeners (functions) when changes
-  private listeners: Listener[] = [];
+// Create a base State class to be shared so we can manage multiple states
+// like users, projects, shopping cart, etc. Going to use generic types that
+// can then be forwarded to our custom Listener<T> type.
+class State<T> {
+  // Add a protected listeners array to store our listeners (functions) when changes
+  // protected allows deriving classes (ProjectState) to access listeners array
+  protected listeners: Listener<T>[] = [];
+  
+  addListener(listenerFn: Listener<T>) {
+    // Add this function to list of listeners
+    this.listeners.push(listenerFn);
+  }
+}
+
+class ProjectState extends State<Project>{
   // Add a private projects variable to store all our projects
   private projects: Project[] = [];
   // Add a private property and set its type to this class itself
@@ -27,7 +39,10 @@ class ProjectState {
   private static instance: ProjectState;
 
   // Add private constructor to guarantee it's a Singleton class
-  private constructor() {}
+  private constructor() {
+    // Call super() now that we're inheriting from State base class
+    super();
+  }
 
   // Add a getInstance Static method so we can call directly on constructor
   // without having to first create an instance (then it'd be an instance method)
@@ -41,10 +56,6 @@ class ProjectState {
     return this.instance;
   }
 
-  addListener(listenerFn: Listener) {
-    // Add this function to list of listeners
-    this.listeners.push(listenerFn);
-  }
   // Create an instance method to add projects to this list when button is clicked
   addProject(title: string, description: string, numOfPeople: number) {
     const newProject = new Project(
@@ -201,8 +212,8 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   // concrete implementations. Also ensures that no conflicts occur so 
   // it's better they're called within inheriting classes since super()
   // would run this constructor first.
-  abstract configure(): void;
-  abstract renderContent(): void;
+  protected abstract configure(): void;
+  protected abstract renderContent(): void;
 }
 
 class ProjectList extends Component<HTMLDivElement, HTMLElement> {
@@ -224,7 +235,9 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
   // It's convention to move public methods up top before private
   // Create a configure() method that does all the addListener() bit
   // Can't make it private since it's abstract/public in Component
-  configure() {
+  // However, can use protected abstract which allows it to be accessed
+  // within deriving classes.
+  protected configure() {
     // Set up a new listener function using our new ProjectState addListener() method
     // Have to pass a function to addListener()
     projectState.addListener((projects: Project[]) => {
@@ -249,7 +262,9 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
   // Render content in the h2 and ul elements
   // Gotta remove private since renderContent() is public in Component
   // No such thing as private abstract methods.
-  renderContent() {
+  // However, can use protected abstract which allows it to be accessed
+  // within deriving classes.
+  protected renderContent() {
     // Add an id to the <ul> element so we can select it later
     const listId = `${this.type}-projects-list`;
     // Now let's select the actual <ul> element within our section
@@ -305,13 +320,13 @@ class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
   }
 
   // Add a method to addEventListener to our form input and submit
-  configure() {
+  protected configure() {
     // Attach a listener to our form element
     this.element.addEventListener("submit", this.submitHandler);
   }
 
   // Add a renderContent() method since it's required from Component class
-  renderContent() {}
+  protected renderContent() {}
 
   // Gather user input data the returns a tuple [title, description, people]
   // Use Union for function return type to add void type for alert
