@@ -14,6 +14,7 @@ class Project {
   ) {}
 }
 
+
 // Project State Management to listen for changes throughout app
 type Listener<T> = (items: T[]) => void;
 
@@ -216,6 +217,35 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   protected abstract renderContent(): void;
 }
 
+
+// Create a ProjectItem class that can be instantiated with each new project
+// Responsible for rendering a single project item
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>{
+  // Store the actual project for this instance as a property
+  private project: Project;
+
+  constructor(hostId: string, project: Project) {
+    // Pass the template id 
+    super("single-project", hostId, false, project.id); 
+    // Set the property to the Project that's passed when creating the instance
+    this.project = project;
+
+    this.configure();
+    this.renderContent();
+  }
+
+  protected configure() {};
+  
+  protected renderContent() {
+    // Reach out to the elements and insert our project details
+    this.element.querySelector('h2')!.textContent = this.project.title;
+    this.element.querySelector('h3')!.textContent = this.project.people.toString();
+    this.element.querySelector('p')!.textContent = this.project.description;
+  };
+}
+
+
+
 class ProjectList extends Component<HTMLDivElement, HTMLElement> {
   // Add a new property that will store the list of projects passed to projectState.addListener();
   assignedProjects: Project[];
@@ -287,10 +317,13 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
     listEl.innerHTML = "";
     // Now let's loop through all the projects (assignedProjects) and render them
     for (const prjItem of this.assignedProjects) {
-      // Add our project as a list item
-      const listItem = document.createElement("li");
-      listItem.textContent = prjItem.title;
-      listEl.appendChild(listItem);
+      // Instantiate a new ProjectItem() instance and pass in hostId (this.element.id of ProjectList)
+      // this.element refers to the 'section' element with active/finihed-projects id
+      // We actually need the 'ul' id instead so we use querySelector('ul')!.id instead
+      new ProjectItem(this.element.querySelector('ul')!.id, prjItem);
+      console.log(this.element.querySelector('ul')!.id); // active-projects-list
+      console.log(this.element.id); // active-projects
+      console.log(this.hostElement.id); // app
     }
   }
 }
