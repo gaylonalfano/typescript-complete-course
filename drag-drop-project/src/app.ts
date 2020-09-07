@@ -224,6 +224,15 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>{
   // Store the actual project for this instance as a property
   private project: Project;
 
+  // Add a Getter to fetch the number of people assigned to project and return the correct text
+  get persons() {
+    if (this.project.people === 1) {
+      return '1 person';
+    } else {
+      return `${this.project.people} persons`;
+    }
+  }
+
   constructor(hostId: string, project: Project) {
     // Pass the template id 
     super("single-project", hostId, false, project.id); 
@@ -239,7 +248,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>{
   protected renderContent() {
     // Reach out to the elements and insert our project details
     this.element.querySelector('h2')!.textContent = this.project.title;
-    this.element.querySelector('h3')!.textContent = this.project.people.toString();
+    this.element.querySelector('h3')!.textContent = this.persons + ' assigned';
     this.element.querySelector('p')!.textContent = this.project.description;
   };
 }
