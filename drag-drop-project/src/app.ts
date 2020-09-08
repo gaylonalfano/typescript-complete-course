@@ -293,7 +293,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
 
 
 
-class ProjectList extends Component<HTMLDivElement, HTMLElement> {
+class ProjectList extends Component<HTMLDivElement, HTMLElement> implements DragTarget {
   // Add a new property that will store the list of projects passed to projectState.addListener();
   assignedProjects: Project[];
 
@@ -309,12 +309,44 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
     this.renderContent();
   }
 
+  // Add our DragTarget interface event handler functions
+  @autobind
+  dragOverHandler(_: DragEvent) {
+    // Add droppable CSS class to ul element for visual cue to user
+    // Recall that this.element = <section> so we querySelector('ul') to get <ul>
+    const listEl = this.element.querySelector('ul')!;
+    // Use vanilla JS classList.add() method to add our CSS class
+    // We'll end up with <ul class="droppable">
+    listEl.classList.add("droppable");
+  }
+
+  dropHandler(_: DragEvent) {
+
+  }
+
+  @autobind
+  dragLeaveHandler(_: DragEvent) {
+    // Remove droppable CSS class to ul element for visual cue to user
+    // Recall that this.element = <section> so we querySelector('ul') to get <ul>
+    const listEl = this.element.querySelector('ul')!;
+    // Use vanilla JS classList.remove() method to remove our CSS class
+    // We'll end up with a simple no-class <ul>
+    listEl.classList.remove("droppable");
+  }
+
+
+
   // It's convention to move public methods up top before private
   // Create a configure() method that does all the addListener() bit
   // Can't make it private since it's abstract/public in Component
   // However, can use protected abstract which allows it to be accessed
   // within deriving classes.
   protected configure() {
+    // Add event listeners to this.element (<section>) to help trigger our drag/drop handlers
+    this.element.addEventListener("dragover", this.dragOverHandler);
+    this.element.addEventListener("dragleave", this.dragLeaveHandler);
+    this.element.addEventListener("drop", this.dropHandler);
+
     // Set up a new listener function using our new ProjectState addListener() method
     // Have to pass a function to addListener()
     projectState.addListener((projects: Project[]) => {
