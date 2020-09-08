@@ -267,8 +267,12 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
   // so 'this' refers to the class and not the target of the event
   @autobind
   dragStartHandler(event: DragEvent) {
-    // Log the event when it occurs
-    console.log(event);
+    /* // Log the event when it occurs */
+    /* console.log(event); */
+    // Access the event's dataTransfer property and set/pass some data
+    event.dataTransfer!.setData("text/plain", this.project.id);
+    // Let's tell the browser our intentions to move an element from A to B
+    event.dataTransfer!.effectAllowed = "move";
   }
 
   /* @autobind */
@@ -311,17 +315,24 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> implements Drag
 
   // Add our DragTarget interface event handler functions
   @autobind
-  dragOverHandler(_: DragEvent) {
-    // Add droppable CSS class to ul element for visual cue to user
-    // Recall that this.element = <section> so we querySelector('ul') to get <ul>
-    const listEl = this.element.querySelector('ul')!;
-    // Use vanilla JS classList.add() method to add our CSS class
-    // We'll end up with <ul class="droppable">
-    listEl.classList.add("droppable");
+  dragOverHandler(event: DragEvent) {
+    // Tell JS to allow this <section> element to be dragged/dropped by preventing default
+    event.preventDefault();
+    // Check if this location is a valid drag/drop target location
+    // and that the format of the data is 'text/plain' (not images, etc.)
+    if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      // Add droppable CSS class to ul element for visual cue to user
+      // Recall that this.element = <section> so we querySelector('ul') to get <ul>
+      const listEl = this.element.querySelector('ul')!;
+      // Use vanilla JS classList.add() method to add our CSS class
+      // We'll end up with <ul class="droppable">
+      listEl.classList.add("droppable");
+    }
   }
 
-  dropHandler(_: DragEvent) {
-
+  dropHandler(event: DragEvent) {
+    // Extract the data from the event using dataTransfer!.getData('text/plain')
+    console.log(event.dataTransfer!.getData('text/plain'));
   }
 
   @autobind
