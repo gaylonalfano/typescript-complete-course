@@ -87,6 +87,33 @@ class ProjectState extends State<Project>{
     );
     // Now let's add this newProject to our projects Array
     this.projects.push(newProject);
+    this.updateListeners();
+  }
+
+  // Create a moveProject() method to switch project.ProjectStatus
+  // User can drag an active project back to active list, fyi
+  // Need to know which project to move and which box is the new box
+  // so that we can change the ProjectStatus accordingly
+  moveProject(projectId: string, newStatus: ProjectStatus) {
+    // Find the matching project in my Array of projects in ProjectState
+    const project = this.projects.find(prj => prj.id === projectId);
+    // Check if projectId exists and then and then change/swap its status.
+    // Also check if project status is different than newStatus, otherwise
+    // we don't need to update and re-render anything.
+    if (project && project.status !== newStatus) {
+      // Change the project object in our projects Array with the new status
+      // Afterwards just need to let all listeners know that we have a state change
+      // and they should re-render. Again, ONLY if status actually changed!
+      project.status = newStatus;
+      // Let listeners know we've had a state change by passing in projects Array
+      // and then they need to re-render
+      this.updateListeners();
+    }
+  }
+
+  // Go through all listeners and let them know that there has been a change in
+  // state by passing in updated projects array and to re-render.
+  private updateListeners() {
     // Loop through listeners function and pass in projects Array as argument
     for (const listenerFn of this.listeners) {
       // Execute each function with projects as argument
@@ -330,9 +357,14 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> implements Drag
     }
   }
 
+  @autobind
   dropHandler(event: DragEvent) {
     // Extract the data from the event using dataTransfer!.getData('text/plain')
-    console.log(event.dataTransfer!.getData('text/plain'));
+    /* console.log(event.dataTransfer!.getData('text/plain')); */
+    const prjId = event.dataTransfer!.getData('text/plain');
+    // Change the status of the project if it exists and we change the drop target
+    // New project status depends on the list we drop this project on/in
+    projectState.moveProject(prjId, this.type === 'active' ? ProjectStatus.Active : ProjectStatus.Finished);
   }
 
   @autobind
