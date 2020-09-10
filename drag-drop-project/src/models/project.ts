@@ -1,9 +1,9 @@
-// Project Type (Class actually so we can instantiate it)
 export enum ProjectStatus {
   Active,
   Finished,
 }
 
+// Project Type (Class actually so we can instantiate it)
 export class Project {
   constructor(
     public id: string,

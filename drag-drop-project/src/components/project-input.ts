@@ -1,4 +1,9 @@
-class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
+import { Component } from "./base-component.js";
+import { Validatable, validate } from "../util/validation.js";
+import { autobind } from "../decorators/autobind.js";
+import { projectState } from "../state/project-state.js";
+
+export class ProjectInput extends Component<HTMLDivElement, HTMLFormElement> {
   // Add user input fields within the form
   titleInputElement: HTMLInputElement;
   descriptionInputElement: HTMLTextAreaElement;

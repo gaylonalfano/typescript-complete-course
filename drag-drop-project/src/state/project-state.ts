@@ -1,3 +1,5 @@
+import { Project, ProjectStatus } from "../models/project.js";
+
 // Project State Management to listen for changes throughout app
 type Listener<T> = (items: T[]) => void;
 

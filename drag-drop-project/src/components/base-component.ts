@@ -1,5 +1,5 @@
 // Component Base Class. Mark abstract class so can't instantiate it directly
-abstract class Component<T extends HTMLElement, U extends HTMLElement> {
+export abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   // Reaching out to our template id="project-list"
   templateElement: HTMLTemplateElement;
   hostElement: T;

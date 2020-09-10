@@ -1,6 +1,11 @@
+import { Draggable } from "../models/drag-drop.js";
+import { autobind } from "../decorators/autobind.js";
+import { Component } from "../components/base-component.js";
+import { Project } from "../models/project.js";
+
 // Create a ProjectItem class that can be instantiated with each new project
 // Responsible for rendering a single project item
-class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
+export class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
   implements Draggable {
   // Store the actual project for this instance as a property
   private project: Project;

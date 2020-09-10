@@ -1,4 +1,11 @@
-class ProjectList extends Component<HTMLDivElement, HTMLElement>
+import { DragTarget } from "../models/drag-drop.js";
+import { autobind } from "../decorators/autobind.js";
+import { Component } from "../components/base-component.js";
+import { ProjectItem } from "../components/project-item.js";
+import { Project, ProjectStatus } from "../models/project.js";
+import { projectState } from "../state/project-state.js";
+
+export class ProjectList extends Component<HTMLDivElement, HTMLElement>
   implements DragTarget {
   // Add a new property that will store the list of projects passed to projectState.addListener();
   assignedProjects: Project[];
