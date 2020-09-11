@@ -91,6 +91,9 @@ export class ProjectState extends State<Project> {
   }
 }
 
+// This code only runs once even if imported into several other files
+/* console.log("RUNNING..."); */
+
 // Create our global const ProjectState instance
 // const projectState = new ProjectState();
 export const projectState = ProjectState.getInstance();
