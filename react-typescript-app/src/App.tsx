@@ -14,6 +14,7 @@ const App: React.FC = () => {
   // NOTE: Need to specify a type for the array we pass to useState<Todo[]>([])
   const [todos, setTodos] = useState<Todo[]>([]);
 
+  // ADD TODOS
   // Create a handler that takes new todo from NewTodo component and adds
   // to todos list. Use state management. We want this function available inside
   // the NewTodo component, so we pass a pointer to this function within the component
@@ -35,10 +36,23 @@ const App: React.FC = () => {
     setTodos((prevTodos) => [...prevTodos, newTodo]);
   };
 
+  // DELETE TODOS
+  // TODO: Need to handle deleting todos, updating state, and rerendering our list of todos
+  const todoDeleteHandler = (todoId: string) => {
+    // Call our update state function setTodos() to remove the todo
+    setTodos((prevTodos) => {
+      // Return updated todos array using .filter
+      return prevTodos.filter((todo) => todo.id !== todoId);
+      // TODO After above, need to make sure todoDeleteHandler can be called
+      // from within TodoList component by passing it via a prop
+    });
+  };
+
   return (
     <div className="App">
       <NewTodo onAddTodo={todoAddHandler} />
-      <TodoList items={todos} />
+      {/* call todoDeleteHandler within component by using a prop */}
+      <TodoList items={todos} onDeleteTodo={todoDeleteHandler} />
     </div>
   );
 };
