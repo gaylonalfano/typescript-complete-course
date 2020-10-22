@@ -5,6 +5,7 @@ import "./NewTodo.css";
 // Add a new Function-Type prop
 interface NewTodoProps {
   onAddTodo: (todoText: string) => void;
+  handleChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 /* type NewTodoProps = { */
@@ -46,7 +47,12 @@ const NewTodo: React.FC<NewTodoProps> = (props) => {
     <form onSubmit={todoSubmitHandler}>
       <div className="form-control">
         <label htmlFor="todo-text">Todo Text</label>
-        <input type="text" id="todo-text" ref={textInputRef} />
+        <input
+          type="text"
+          id="todo-text"
+          ref={textInputRef}
+          onChange={handleChange}
+        />
       </div>
       <button type="submit">Add Todo</button>
     </form>

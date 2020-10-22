@@ -50,7 +50,10 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
-      <NewTodo onAddTodo={todoAddHandler} />
+      <NewTodo
+        onAddTodo={todoAddHandler}
+        handleChange={(event) => event.target}
+      />
       {/* call todoDeleteHandler within component by using a prop */}
       <TodoList items={todos} onDeleteTodo={todoDeleteHandler} />
     </div>
