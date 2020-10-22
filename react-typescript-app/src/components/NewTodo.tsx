@@ -51,7 +51,7 @@ const NewTodo: React.FC<NewTodoProps> = (props) => {
           type="text"
           id="todo-text"
           ref={textInputRef}
-          onChange={handleChange}
+          // onChange={handleChange}
         />
       </div>
       <button type="submit">Add Todo</button>

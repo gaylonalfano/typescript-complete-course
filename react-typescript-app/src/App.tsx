@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import TodoList from "./components/TodoList";
 import NewTodo from "./components/NewTodo";
 import Todo from "./todo.model";
+import { Counter } from "./components/CounterRenderProps";
 
 const App: React.FC = () => {
   // Render a list of todos. Will turn into another component eventually
@@ -52,10 +53,19 @@ const App: React.FC = () => {
     <div className="App">
       <NewTodo
         onAddTodo={todoAddHandler}
-        handleChange={(event) => event.target}
+        // handleChange={(event) => event.target}
       />
       {/* call todoDeleteHandler within component by using a prop */}
       <TodoList items={todos} onDeleteTodo={todoDeleteHandler} />
+      {/* Embed the Counter component that returns JSX */}
+      <Counter>
+        {(count, setCount) => (
+          <div>
+            {count}
+            <button onClick={() => setCount(count + 1)}>+</button>
+          </div>
+        )}
+      </Counter>
     </div>
   );
 };
